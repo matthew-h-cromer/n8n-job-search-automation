@@ -80,7 +80,7 @@ The prompt has two sections you need to customize:
 Spend time on this. The quality of the output depends entirely on how well you describe what you're looking for and why you're a fit.
 
 ### 7. Update the email address
-Search for `your.email@example.com` in the workflow and replace it with your actual email address in both Gmail nodes (the daily report and the error notification).
+Open the **Send a message1** node (daily report) and the **Send a message** node (error notification) and set the recipient to your email address in each.
 
 ### 8. Update the Google Sheet link in the email
 In the **Send a message1** Gmail node, replace `YOUR_GOOGLE_SHEET_ID` in the email body with your actual Google Sheet ID so the daily digest links to your spreadsheet.
