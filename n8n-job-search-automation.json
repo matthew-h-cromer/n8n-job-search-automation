@@ -1,0 +1,1306 @@
+{
+  "name": "Daily Job Report",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "77dcd710-2620-45a6-a7dd-da209eabf27e",
+      "name": "When clicking 'Execute workflow'"
+    },
+    {
+      "parameters": {
+        "url": "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "keywords",
+              "value": "={{ $json.search }}"
+            },
+            {
+              "name": "location",
+              "value": "united states"
+            },
+            {
+              "name": "f_TPR",
+              "value": "r108000"
+            },
+            {
+              "name": "start",
+              "value": "0"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+            }
+          ]
+        },
+        "options": {
+          "pagination": {
+            "pagination": {
+              "parameters": {
+                "parameters": [
+                  {
+                    "name": "start",
+                    "value": "={{ $pageCount * 10 }}"
+                  }
+                ]
+              },
+              "limitPagesFetched": true,
+              "maxRequests": 3,
+              "requestInterval": 2000
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        448,
+        96
+      ],
+      "id": "538dc617-c850-4793-9797-5e8764054553",
+      "name": "HTTP Request",
+      "notesInFlow": true,
+      "notes": "\"product manager platform\""
+    },
+    {
+      "parameters": {
+        "operation": "extractHtmlContent",
+        "extractionValues": {
+          "values": [
+            {
+              "key": "url",
+              "cssSelector": "a.base-card__full-link",
+              "returnValue": "attribute",
+              "attribute": "href",
+              "returnArray": true
+            },
+            {
+              "key": "title",
+              "cssSelector": "h3.base-search-card__title",
+              "returnArray": true
+            },
+            {
+              "key": "company",
+              "cssSelector": "h4.base-search-card__subtitle a.hidden-nested-link",
+              "returnArray": true
+            },
+            {
+              "key": "posted",
+              "cssSelector": "time.job-search-card__listdate, time.job-search-card__listdate--new",
+              "returnValue": "attribute",
+              "attribute": "datetime",
+              "returnArray": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        672,
+        96
+      ],
+      "id": "227c723f-0cd7-42a0-a25a-1bb8bac73122",
+      "name": "HTML",
+      "notesInFlow": true,
+      "notes": "Extract url, title, company, posted"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 2000
+            }
+          },
+          "response": {
+            "response": {}
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2112,
+        320
+      ],
+      "id": "ef890ed4-e57d-438f-ae56-d8f885c4e339",
+      "name": "HTTP Request1",
+      "notesInFlow": true,
+      "notes": "Get full job posting"
+    },
+    {
+      "parameters": {
+        "operation": "extractHtmlContent",
+        "extractionValues": {
+          "values": [
+            {
+              "key": "description",
+              "cssSelector": "div.show-more-less-html__markup"
+            },
+            {
+              "key": "location",
+              "cssSelector": "span.topcard__flavor--bullet"
+            },
+            {
+              "key": "salary",
+              "cssSelector": "div.salary"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        2304,
+        320
+      ],
+      "id": "5246c486-340b-4cb5-9859-83e2dd880538",
+      "name": "HTML1",
+      "notesInFlow": true,
+      "notes": "Extract description, location, salary"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"shortDescription\": \"A concise 1-2 sentense description of the role.\",\n  \"salaryMin\": \"$180\",\n  \"salaryMax\": \"$210\",\n  \"fitScore\": 7,\n  \"chanceScore\": 5,\n  \"verdict\": \"Will Apply | Will Not Apply\",\n  \"reason\": \"A concise 1-2 sentence explanation for the verdict.\",\n  \"matching\": \"A list of things that strengthen my argument for the role.\",\n  \"gaps\": \"A list of things that weaken my argument for the role.\"\n}\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        2912,
+        592
+      ],
+      "id": "dd29c831-e58a-412b-b157-e1b05654fd82",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=## Task\nYou are helping me review job descriptions against my resume to determine if I should apply. \n\nYou will output:\n- shortDescription: A concise 1-2 sentense description of the role.\n- salaryMin: Ascertain minimum salary (in thousands) from data provided. Examples: \"$160\", \"$200\", \"\" (use empty string if n/a)\n- salaryMax: Ascertain maximum salary (in thousands) from data provided. Examples: \"$160\", \"$200\", \"\" (use empty string if n/a)\n- fitScore: Think about my background and career narratives against the job description. Is this a fit for my career growth and interests? Score 1/10.\n- chanceScore: Get inside the minds of the org. Think about what their recruiters and hiring managers are looking for. Think about who they normally hire. Think about their values. What chance do I have of getting invited for an interview? Score 1/10.\n- verdict: A decision on whether or not I will apply. Either \"Will Apply\" or \"Will Not Apply\"\n- reason: A concise 1-2 sentence explanation for the verdict.\n- matching: A concise list of things that strengthen my argument for the role.\n- gaps: A concise list of things that weaken my argument for the role.\n\nBe realistic and direct. Do this in a way where you really have my back. You're helping to process a large number of roles and help me apply to ones that are the best fit and have a real chance of getting invited to interview. I don't want to waste my time.\n\n## My Resume:\n[PASTE YOUR FULL RESUME HERE]\n\n## My Career Narratives:\n[WRITE 3-6 CAREER NARRATIVES HERE. Each narrative should describe a type of role you're targeting and why your background makes you a strong fit. Example format:\n\n1. Developer Platforms & APIs\nI built a B2B developer platform end-to-end: API, SDK, documentation, developer portal. Strong fit for developer tools, API products, SDK teams, and developer experience roles.\n\n2. Industrial & Physical Systems\nI spent several years in manufacturing and robotics before transitioning to product management. Strong fit for digital twins, warehouse automation, robotics, and roles where software meets physical operations.\n\nThese narratives give the LLM context beyond your resume to understand the story you're telling about your career.]\n\n## Job Description:\nCompany: {{ $json.company }}\nTitle: {{ $json.title }}\nPosted:{{ $json.posted }}\nDescription: {{ $json.description }}\nLocation: {{ $json.location }}\nSalary: {{ $json.salary }} // if n/a, check description",
+        "hasOutputParser": true,
+        "batching": {
+          "batchSize": 1,
+          "delayBetweenBatches": 2000
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        2768,
+        400
+      ],
+      "id": "7c5938ad-dc2c-4a12-9232-fc831b6596c2",
+      "name": "Basic LLM Chain",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "maxTries": 2,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "claude-sonnet-4-5-20250929",
+          "cachedResultName": "Claude Sonnet 4.5"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [
+        2768,
+        592
+      ],
+      "id": "e6efed42-960a-493e-bf91-409bf8d542e5",
+      "name": "Anthropic Chat Model",
+      "credentials": {
+        "anthropicApi": {
+          "id": "YOUR_ANTHROPIC_CREDENTIAL_ID",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "Job applications",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Applications",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Company": "={{ $json.company }}",
+            "Title": "={{ $json.title }}",
+            "Link": "={{ $json.url }}",
+            "Full\nDescription": "={{ $json.description }}",
+            "Salary Min\n($k)": "={{ $json.salaryMin }}",
+            "Salary Max\n($k)": "={{ $json.salaryMax }}",
+            "Notes": "=\ud83e\udd16 Fit: ({{ $json.fitScore}}/10); Chance: ({{ $json.chanceScore }}/10); {{ $json.reason }}",
+            "Status": "={{ $json.verdict }}",
+            "Short Description": "={{ $json.shortDescription }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Date Applied",
+              "displayName": "Date Applied",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Days Since",
+              "displayName": "Days Since",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Date of Response",
+              "displayName": "Date of Response",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Title",
+              "displayName": "Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Short Description",
+              "displayName": "Short Description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Resume Version",
+              "displayName": "Resume Version",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Salary Min\n($k)",
+              "displayName": "Salary Min\n($k)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Salary Max\n($k)",
+              "displayName": "Salary Max\n($k)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Link",
+              "displayName": "Link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Notes",
+              "displayName": "Notes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Days for Response",
+              "displayName": "Days for Response",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Referred",
+              "displayName": "Referred",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Interviewed",
+              "displayName": "Interviewed",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Full\nDescription",
+              "displayName": "Full\nDescription",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Claude's Top ATS Keywords",
+              "displayName": "Claude's Top ATS Keywords",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "cellFormat": "USER_ENTERED",
+          "useAppend": true
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        4352,
+        0
+      ],
+      "id": "eda28ef7-e427-46b6-b039-ff4c1b4bb730",
+      "name": "Append row in sheet",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "convertToHtmlTable",
+        "options": {
+          "capitalize": false,
+          "customStyling": true,
+          "caption": "",
+          "tableAttributes": "style=\"border-collapse: collapse; width: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);\"",
+          "headerAttributes": "style=\"background-color: #1a1a2e; padding: 14px 16px; text-align: left; color: #ffffff; font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;\"",
+          "rowAttributes": "style=\"border-bottom: 1px solid #e8e8e8;\"",
+          "cellAttributes": "style=\"padding: 12px 16px; color: #333333; vertical-align: top;\""
+        }
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        4128,
+        192
+      ],
+      "id": "77ab6bb9-b930-416d-b596-039e8a40cc31",
+      "name": "HTML2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "00e94674-0be4-472d-a58c-400e5d762571",
+              "name": "company",
+              "value": "={{ $json.company }}",
+              "type": "string"
+            },
+            {
+              "id": "bac5ec3f-cd8c-403e-af6a-07f487f76829",
+              "name": "title",
+              "value": "={{ $json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "af57a483-dcaf-4a1b-8e42-3e6e0cf26490",
+              "name": "urlLink",
+              "value": "=<a href=\"{{ $json.url }}\" style=\"color: #1a73e8; text-decoration: none;\">\ud83d\udd17</a>",
+              "type": "string"
+            },
+            {
+              "id": "c8537a00-832f-4559-b268-e67b286dc141",
+              "name": "shortDescription",
+              "value": "={{ $json.shortDescription }}",
+              "type": "string"
+            },
+            {
+              "id": "58a4bb99-23da-48b9-8126-1165e93a4822",
+              "name": "fitScore",
+              "value": "={{ $json.fitScore }}",
+              "type": "number"
+            },
+            {
+              "id": "526bfb30-1c9a-4f1b-8376-7ded7a2a4dbf",
+              "name": "chanceScore",
+              "value": "={{ $json.chanceScore }}",
+              "type": "number"
+            },
+            {
+              "id": "66cce8ff-2de5-4835-b255-52cae411f9c6",
+              "name": "verdictTag",
+              "value": "={{ $json.verdict === 'Will Apply' \n   ? '<span style=\"background-color: #52c41a; color: #fff; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: 600;\">Apply</span>' : '<span style=\"background-color: #f5222d; color: #fff; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: 600;\">Skip</span>'\n}}",
+              "type": "string"
+            },
+            {
+              "id": "3aba4297-4143-457a-bcb4-97fed14c7029",
+              "name": "reason",
+              "value": "={{ $json.reason }}",
+              "type": "string"
+            },
+            {
+              "id": "626d09b0-ffab-490d-ad4d-428f4a4b65ad",
+              "name": "matching",
+              "value": "={{ $json.matching }}",
+              "type": "string"
+            },
+            {
+              "id": "31dd5657-5b01-4bc6-abc1-f7cc2a42a720",
+              "name": "gaps",
+              "value": "={{ $json.gaps }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3904,
+        192
+      ],
+      "id": "7d30d234-7844-4da6-87af-b6bbbffeb841",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "sendTo": "your.email@example.com",
+        "subject": "=Daily Jobs Report: {{ $now.format('MMMM d, yyyy') }}",
+        "message": "=<h2>Daily Jobs Report: {{ $now.format('MMMM d, yyyy') }}</h2>\n\n<p>Added to doc: https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit?gid=0#gid=0</p>\n\n{{ $json.table }}\n\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        4352,
+        192
+      ],
+      "id": "5e693c71-2775-48cb-af27-fd2316442977",
+      "name": "Send a message1",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "YOUR_GMAIL_CREDENTIAL_ID",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sortFieldsUi": {
+          "sortField": [
+            {
+              "fieldName": "verdict"
+            },
+            {
+              "fieldName": "fitScore",
+              "order": "descending"
+            },
+            {
+              "fieldName": "chanceScore",
+              "order": "descending"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.sort",
+      "typeVersion": 1,
+      "position": [
+        3664,
+        96
+      ],
+      "id": "6e5fb201-cddf-443e-8915-39198a01b308",
+      "name": "Sort",
+      "notesInFlow": true,
+      "notes": "by verdict and score"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "Job applications",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Applications",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Title",
+              "lookupValue": "={{ $json.title }}"
+            },
+            {
+              "lookupColumn": "Company",
+              "lookupValue": "={{ $json.company }}"
+            }
+          ]
+        },
+        "options": {
+          "outputFormatting": {
+            "values": {
+              "general": "UNFORMATTED_VALUE",
+              "date": "FORMATTED_STRING"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1344,
+        208
+      ],
+      "id": "72c23d73-33b8-4a94-9f1d-22276987b048",
+      "name": "Get row(s) in sheet",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "Discard if job is already saved",
+        "height": 80,
+        "width": 320
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1344,
+        0
+      ],
+      "typeVersion": 1,
+      "id": "f283fd90-2486-4018-ad0a-f3c090fc2d5a",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "Save results to spreadsheet",
+        "height": 80,
+        "width": 550
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        3904,
+        -112
+      ],
+      "typeVersion": 1,
+      "id": "c19ea3a7-61bd-4118-a86d-45e71f5b9fea",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "Email job report and LLM error summary",
+        "height": 80,
+        "width": 544
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        3904,
+        384
+      ],
+      "typeVersion": 1,
+      "id": "ad9104e4-055a-4fb3-86bd-001a6a6e7bb3",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "url, title, company, posted",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        896,
+        96
+      ],
+      "id": "33caaea3-a1da-421e-bc11-5b80224bd3d6",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        4576,
+        96
+      ],
+      "id": "232fabfe-cc69-4dc9-896d-b04da34b5b4b",
+      "name": "Merge2"
+    },
+    {
+      "parameters": {
+        "content": "Get job description, parse, and merge into Job Data",
+        "height": 80,
+        "width": 560
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2080,
+        192
+      ],
+      "typeVersion": 1,
+      "id": "332d51b7-f2e6-44ff-9487-b64d193fc31f",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "Evaluate job against resume and career narratives",
+        "height": 80,
+        "width": 672
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2768,
+        192
+      ],
+      "typeVersion": 1,
+      "id": "7231e674-28f4-458b-84ac-9ad6926c71e1",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2544,
+        304
+      ],
+      "id": "ede71d6e-7434-406c-af8f-e1c17310fa7c",
+      "name": "Job Data"
+    },
+    {
+      "parameters": {
+        "compare": "selectedFields",
+        "fieldsToCompare": "title, company",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.removeDuplicates",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        96
+      ],
+      "id": "4a0f5d7e-69f0-498f-9e76-809a992eb432",
+      "name": "Remove Duplicates"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        192
+      ],
+      "id": "62a8a608-266e-415a-9335-75092d8edd59",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "content": "Aggregated the following LinkedIn job postings from the last ~24 hours:\n-> \"product manager\" developer experience\n-> \"product manager\" robotics\n-> \"product manager\" manufacturing software\n-> \"product manager\" marketplace\n-> \"product manager\" ai\nChecks 3 pages of search results",
+        "width": 992
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        224,
+        -96
+      ],
+      "typeVersion": 1,
+      "id": "9d2c7c09-3ec2-480b-ad78-313a0754bec2",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "jsCode": "const SEARCH_TERMS = [\n  `\"product manager\" developer experience`,\n  `\"product manager\" robotics`,\n  `\"product manager\" manufacturing software`,\n  `\"product manager\" marketplace`,\n  `\"product manager\" ai`\n]\n\nreturn SEARCH_TERMS.map(term => ({\"search\": term}))"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        96
+      ],
+      "id": "937acc10-c15a-4450-b802-83a47008d4f6",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1888,
+        112
+      ],
+      "id": "5c2de04f-fcf2-4d51-a1bc-2d2596ca6889",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "content": "Loop enforces concurrency of 1 and preserves heavy memory from page retrieval, parsing, and LLM",
+        "height": 80,
+        "width": 278
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1888,
+        0
+      ],
+      "typeVersion": 1,
+      "id": "f305f3ba-eb92-4cbd-af1c-9728f9a0eaa5",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        3344,
+        320
+      ],
+      "id": "2084b92f-b9e3-47c4-a461-0ce346697a6b",
+      "name": "Assessment Data"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8d2252b6-36db-42a1-9a38-100f52059ee3",
+              "name": "shortDescription",
+              "value": "={{ $json.output.shortDescription }}",
+              "type": "string"
+            },
+            {
+              "id": "7f74e6ec-f8ea-46ac-9b6a-389fb4b897d6",
+              "name": "salaryMin",
+              "value": "={{ $json.output.salaryMin }}",
+              "type": "string"
+            },
+            {
+              "id": "b4c72087-109a-4b46-978f-e270bc8c269b",
+              "name": "salaryMax",
+              "value": "={{ $json.output.salaryMax }}",
+              "type": "string"
+            },
+            {
+              "id": "96fedb12-bfc6-4d12-8617-f1af8f6964c7",
+              "name": "fitScore",
+              "value": "={{ $json.output.fitScore }}",
+              "type": "number"
+            },
+            {
+              "id": "219bb259-0c64-45db-beff-962a12a1ad40",
+              "name": "chanceScore",
+              "value": "={{ $json.output.chanceScore }}",
+              "type": "number"
+            },
+            {
+              "id": "86f7e9df-e1fd-44fa-9250-29b7adbcce9b",
+              "name": "verdict",
+              "value": "={{ $json.output.verdict }}",
+              "type": "string"
+            },
+            {
+              "id": "6e66fb23-c391-4caf-b836-7727f3e62dd5",
+              "name": "reason",
+              "value": "={{ $json.output.reason }}",
+              "type": "string"
+            },
+            {
+              "id": "7fbaa35a-9ee7-4d9a-8bc0-69e9eb5b4afe",
+              "name": "matching",
+              "value": "={{ $json.output.matching }}",
+              "type": "string"
+            },
+            {
+              "id": "d57a1b54-dece-46f1-ab28-0732454e86ac",
+              "name": "gaps",
+              "value": "={{ $json.output.gaps }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3104,
+        384
+      ],
+      "id": "2a1f0bb9-23d7-4ae9-9a5e-820a4bc1048d",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "advanced": true,
+        "mergeByFields": {
+          "values": [
+            {
+              "field1": "title",
+              "field2": "Title"
+            },
+            {
+              "field1": "company",
+              "field2": "Company"
+            }
+          ]
+        },
+        "joinMode": "keepNonMatches",
+        "outputDataFrom": "input1",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1568,
+        112
+      ],
+      "id": "795491d8-58a2-4717-b0a4-a4a8b857f69d",
+      "name": "Job Searches"
+    },
+    {
+      "parameters": {
+        "sendTo": "your.email@example.com",
+        "subject": "=Error During Jobs Report: {{ $now.format('MMMM d, yyyy') }}",
+        "message": "=<h2>An Error Occurred During the Daily Jobs Report: {{ $now.format('MMMM d, yyyy') }}</h2>\n\n<h3>Job</h3>\nCompany: {{ $('Job Data').item.json.company }}\nTitle: {{ $('Job Data').item.json.title }}\n\n<h2>Error</h2>\n{{ $json.error }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        3104,
+        720
+      ],
+      "id": "727b11ba-daab-4066-82b0-f050ce4955a7",
+      "name": "Send a message",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "YOUR_GMAIL_CREDENTIAL_ID",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTML": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "HTML1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTML1": {
+      "main": [
+        [
+          {
+            "node": "Job Data",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Anthropic Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTML2": {
+      "main": [
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "HTML2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sort": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Job Searches",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Remove Duplicates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message1": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Job Data": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Assessment Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remove Duplicates": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Job Searches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Sort",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Job Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Assessment Data",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Job Searches": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Assessment Data": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "00000000-0000-0000-0000-000000000000",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "00000000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "id": "WORKFLOW_ID",
+  "tags": []
+}
