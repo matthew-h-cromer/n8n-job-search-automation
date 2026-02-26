@@ -178,13 +178,14 @@
     },
     {
       "parameters": {
-        "jsonSchemaExample": "{\n  \"shortDescription\": \"A concise 1-2 sentense description of the role.\",\n  \"salaryMin\": \"$180\",\n  \"salaryMax\": \"$210\",\n  \"fitScore\": 7,\n  \"chanceScore\": 5,\n  \"verdict\": \"Will Apply | Will Not Apply\",\n  \"reason\": \"A concise 1-2 sentence explanation for the verdict.\",\n  \"matching\": \"A list of things that strengthen my argument for the role.\",\n  \"gaps\": \"A list of things that weaken my argument for the role.\"\n}\n"
+        "jsonSchemaExample": "{\n  \"shortDescription\": \"A concise 1-2 sentense description of the role.\",\n  \"salaryMin\": \"$180\",\n  \"salaryMax\": \"$210\",\n  \"fitScore\": 7,\n  \"chanceScore\": 5,\n  \"verdict\": \"Will Apply | Will Not Apply\",\n  \"reason\": \"A concise 1-2 sentence explanation for the verdict.\",\n  \"matching\": \"A list of things that strengthen my argument for the role.\",\n  \"gaps\": \"A list of things that weaken my argument for the role.\"\n}\n",
+        "autoFix": true
       },
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.3,
       "position": [
-        2912,
-        592
+        2832,
+        880
       ],
       "id": "dd29c831-e58a-412b-b157-e1b05654fd82",
       "name": "Structured Output Parser"
@@ -236,6 +237,46 @@
           "name": "Anthropic account"
         }
       }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "claude-haiku-4-5-20251001",
+          "cachedResultName": "Claude Haiku 4.5"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [
+        2832,
+        1056
+      ],
+      "id": "dfd76502-3abe-41c5-a994-bebe0f5053b9",
+      "name": "Anthropic Chat Model1",
+      "credentials": {
+        "anthropicApi": {
+          "id": "YOUR_ANTHROPIC_CREDENTIAL_ID",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "If output is in the wrong format, this node will try to fix it",
+        "height": 80,
+        "width": 320
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2832,
+        1216
+      ],
+      "typeVersion": 1,
+      "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "name": "Sticky Note7"
     },
     {
       "parameters": {
@@ -689,6 +730,21 @@
     },
     {
       "parameters": {
+        "content": "Get emailed errors if something goes wrong",
+        "height": 80,
+        "width": 320
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        3088,
+        768
+      ],
+      "typeVersion": 1,
+      "id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+      "name": "Sticky Note8"
+    },
+    {
+      "parameters": {
         "content": "Email job report and LLM error summary",
         "height": 80,
         "width": 544
@@ -1063,6 +1119,17 @@
         [
           {
             "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anthropic Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Structured Output Parser",
             "type": "ai_languageModel",
             "index": 0
           }
