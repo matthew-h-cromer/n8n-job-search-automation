@@ -119,7 +119,8 @@
       "id": "227c723f-0cd7-42a0-a25a-1bb8bac73122",
       "name": "HTML",
       "notesInFlow": true,
-      "notes": "Extract url, title, company, posted"
+      "notes": "Extract url, title, company, posted",
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -148,7 +149,8 @@
       "waitBetweenTries": 5000,
       "maxTries": 4,
       "notesInFlow": true,
-      "notes": "Get full job posting"
+      "notes": "Get full job posting",
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -194,7 +196,8 @@
         880
       ],
       "id": "dd29c831-e58a-412b-b157-e1b05654fd82",
-      "name": "Structured Output Parser"
+      "name": "Structured Output Parser",
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -216,8 +219,8 @@
       "name": "Basic LLM Chain",
       "retryOnFail": true,
       "waitBetweenTries": 5000,
-      "maxTries": 4,
-      "onError": "continueErrorOutput"
+      "maxTries": 2,
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -492,6 +495,7 @@
       "retryOnFail": true,
       "waitBetweenTries": 5000,
       "maxTries": 4,
+      "onError": "continueRegularOutput",
       "credentials": {
         "googleSheetsOAuth2Api": {
           "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
@@ -616,6 +620,7 @@
       "retryOnFail": true,
       "waitBetweenTries": 5000,
       "maxTries": 4,
+      "onError": "continueRegularOutput",
       "credentials": {
         "gmailOAuth2": {
           "id": "YOUR_GMAIL_CREDENTIAL_ID",
@@ -738,21 +743,6 @@
       "typeVersion": 1,
       "id": "c19ea3a7-61bd-4118-a86d-45e71f5b9fea",
       "name": "Sticky Note1"
-    },
-    {
-      "parameters": {
-        "content": "Get emailed errors if something goes wrong",
-        "height": 80,
-        "width": 320
-      },
-      "type": "n8n-nodes-base.stickyNote",
-      "position": [
-        3088,
-        768
-      ],
-      "typeVersion": 1,
-      "id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
-      "name": "Sticky Note8"
     },
     {
       "parameters": {
@@ -905,7 +895,8 @@
         96
       ],
       "id": "4a0f5d7e-69f0-498f-9e76-809a992eb432",
-      "name": "Remove Duplicates"
+      "name": "Remove Duplicates",
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -1096,31 +1087,6 @@
       "id": "795491d8-58a2-4717-b0a4-a4a8b857f69d",
       "name": "Job Searches"
     },
-    {
-      "parameters": {
-        "sendTo": "your.email@example.com",
-        "subject": "=Error During Jobs Report: {{ $now.format('MMMM d, yyyy') }}",
-        "message": "=<h2>An Error Occurred During the Daily Jobs Report: {{ $now.format('MMMM d, yyyy') }}</h2>\n\n<h3>Job</h3>\nCompany: {{ $('Job Data').item.json.company }}\nTitle: {{ $('Job Data').item.json.title }}\n\n<h2>Error</h2>\n{{ $json.error }}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.gmail",
-      "typeVersion": 2.2,
-      "position": [
-        3104,
-        720
-      ],
-      "id": "727b11ba-daab-4066-82b0-f050ce4955a7",
-      "name": "Send a message",
-      "retryOnFail": true,
-      "waitBetweenTries": 5000,
-      "maxTries": 4,
-      "credentials": {
-        "gmailOAuth2": {
-          "id": "YOUR_GMAIL_CREDENTIAL_ID",
-          "name": "Gmail account"
-        }
-      }
-    }
   ],
   "pinData": {},
   "connections": {
@@ -1217,13 +1183,6 @@
         [
           {
             "node": "Edit Fields1",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Send a message",
             "type": "main",
             "index": 0
           }
