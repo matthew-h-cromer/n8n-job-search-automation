@@ -227,8 +227,8 @@
         "model": {
           "__rl": true,
           "mode": "list",
-          "value": "claude-haiku-4-5-20251001",
-          "cachedResultName": "Claude Haiku 4.5"
+          "value": "claude-sonnet-4-6",
+          "cachedResultName": "Claude Sonnet 4.6"
         },
         "options": {}
       },
@@ -252,8 +252,8 @@
         "model": {
           "__rl": true,
           "mode": "list",
-          "value": "claude-haiku-4-5-20251001",
-          "cachedResultName": "Claude Haiku 4.5"
+          "value": "claude-sonnet-4-6",
+          "cachedResultName": "Claude Sonnet 4.6"
         },
         "options": {}
       },
