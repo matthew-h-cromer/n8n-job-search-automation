@@ -17,7 +17,7 @@
             },
             {
               "name": "f_TPR",
-              "value": "r108000"
+              "value": "r93600"
             },
             {
               "name": "start",
@@ -908,7 +908,7 @@
     },
     {
       "parameters": {
-        "content": "Aggregated the following LinkedIn job postings from the last ~24 hours:\n-> \"product manager\" developer experience\n-> \"product manager\" robotics\n-> \"product manager\" manufacturing software\n-> \"product manager\" marketplace\n-> \"product manager\" ai\nChecks 5 pages of search results",
+        "content": "Aggregated the following LinkedIn job postings from the last ~24 hours:\n-> \"product manager\" developer experience\n-> \"product manager\" robotics\n-> \"product manager\" manufacturing software\n-> \"product manager\" marketplace\n-> \"product manager\" ai\nChecks 5 pages of search results (last ~26 hours)",
         "width": 992
       },
       "type": "n8n-nodes-base.stickyNote",
@@ -1075,7 +1075,7 @@
       ],
       "id": "795491d8-58a2-4717-b0a4-a4a8b857f69d",
       "name": "Job Searches"
-    },
+    }
   ],
   "pinData": {},
   "connections": {
