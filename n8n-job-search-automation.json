@@ -2,17 +2,6 @@
   "name": "Daily Job Report",
   "nodes": [
     {
-      "parameters": {},
-      "type": "n8n-nodes-base.manualTrigger",
-      "typeVersion": 1,
-      "position": [
-        0,
-        0
-      ],
-      "id": "77dcd710-2620-45a6-a7dd-da209eabf27e",
-      "name": "When clicking 'Execute workflow'"
-    },
-    {
       "parameters": {
         "url": "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search",
         "sendQuery": true,
@@ -1090,17 +1079,6 @@
   ],
   "pinData": {},
   "connections": {
-    "When clicking 'Execute workflow'": {
-      "main": [
-        [
-          {
-            "node": "Code in JavaScript",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "HTTP Request": {
       "main": [
         [
