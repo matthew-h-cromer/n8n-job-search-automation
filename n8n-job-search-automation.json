@@ -57,7 +57,7 @@
                 ]
               },
               "limitPagesFetched": true,
-              "maxRequests": 3,
+              "maxRequests": 5,
               "requestInterval": 2000
             }
           }
@@ -875,7 +875,7 @@
     },
     {
       "parameters": {
-        "content": "Aggregated the following LinkedIn job postings from the last ~24 hours:\n-> \"product manager\" developer experience\n-> \"product manager\" robotics\n-> \"product manager\" manufacturing software\n-> \"product manager\" marketplace\n-> \"product manager\" ai\nChecks 3 pages of search results",
+        "content": "Aggregated the following LinkedIn job postings from the last ~24 hours:\n-> \"product manager\" developer experience\n-> \"product manager\" robotics\n-> \"product manager\" manufacturing software\n-> \"product manager\" marketplace\n-> \"product manager\" ai\nChecks 5 pages of search results",
         "width": 992
       },
       "type": "n8n-nodes-base.stickyNote",
